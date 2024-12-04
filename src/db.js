@@ -1,11 +1,11 @@
-import {createPool} from 'mysql2/promise'
-import { DB_DATABASE, DB_HOST, DB_PASSWORD,DB_USER, DB_PORT } from './config.js'
+const mysql = require('mysql2');
 
+const pool = mysql.createPool({
+  host: 'junction.proxy.rlwy.net', // Host público de Railway
+  user: 'root',                    // Usuario
+  password: 'qwNcRfJKajQXZussMZoQsDnJDdfHZLPs', // Contraseña
+  port: 19000,                     // Puerto público
+  database: 'railway',             // Base de datos
+}).promise();
 
-export const pool = createPool({
-    host: DB_HOST,
-    user: DB_USER,
-    password: DB_PASSWORD,
-    port: DB_PORT,
-    database: DB_DATABASE,
-})
+module.exports = pool;
