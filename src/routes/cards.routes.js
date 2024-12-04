@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getCards, getOneCards, UpdateStatusCard } from "../controllers/cards.controllers.js";
+import { getCards, getOneCards, UpdateStatusCard, OpenCard } from "../controllers/cards.controllers.js";
 
 const router = Router()
 
@@ -7,7 +7,9 @@ router.get('/cards', getCards)
 
 router.get('/cards/:id', getOneCards)
 
-router.put('/cards/:id', UpdateStatusCard)
+router.put('/Updatecards/:id', UpdateStatusCard)
+
+router.patch('/cards/:id/open', OpenCard)
 
 
 export default router;
