@@ -29,29 +29,43 @@ export const OpenCard = async (req, res) => {
     const now = new Date();
 
     try {
-        const card = await pool.query('SELECT * FROM CardsCalendario WHERE id_card = ?', [id]);
+        // Verificar la última apertura en toda la tabla
+        const lastOpenedCard = await pool.query(
+            'SELECT * FROM CardsCalendario WHERE estado_card = ? ORDER BY ultima_apertura DESC LIMIT 1',
+            ['Abierta']
+        );
 
+        if (lastOpenedCard.length > 0) {
+            const diffSegundos = (now - new Date(lastOpenedCard[0].ultima_apertura)) / 1000; // Diferencia en segundos
+            if (diffSegundos < 10) { // Cambia a 10 segundos para pruebas, 80 horas en producción
+                return res.status(400).json({
+                    message: `Debes esperar ${10 - diffSegundos.toFixed(1)} segundos para abrir otra tarjeta.`,
+                });
+            }
+        }
+
+        // Verificar si la carta seleccionada ya está abierta
+        const card = await pool.query('SELECT * FROM CardsCalendario WHERE id_card = ?', [id]);
         if (card.length <= 0) {
             return res.status(404).json({ message: 'Sorpresa no disponible' });
         }
 
-        const { estado_card, ultima_apertura } = card[0];
-
+        const { estado_card } = card[0];
         if (estado_card === 'Abierta') {
             return res.status(400).json({ message: 'Sorpresa ya abierta' });
         }
 
-        if (ultima_apertura) {
-            const diffSegundos = (now - new Date(ultima_apertura)) / 1000; // Diferencia en segundos
-            if (diffSegundos < 10) { // Cambia 10 segundos para pruebas
-                return res.status(400).json({ message: `Debes esperar ${10 - diffSegundos.toFixed(1)} segundos para abrir otra tarjeta.` });
-            }
-        }
-
-        await pool.query('UPDATE CardsCalendario SET estado_card = ?, ultima_apertura = ? WHERE id_card = ?', ['Abierta', now, id]);
+        // Actualizar la carta seleccionada como abierta
+        await pool.query('UPDATE CardsCalendario SET estado_card = ?, ultima_apertura = ? WHERE id_card = ?', [
+            'Abierta',
+            now,
+            id,
+        ]);
 
         return res.status(200).json({ message: `Sorpresa numero ${id} abierta` });
-    } catch {
+    } catch (error) {
+        console.error(error);
         return res.status(500).json({ message: 'Error al abrir la sorpresa' });
     }
 };
+
