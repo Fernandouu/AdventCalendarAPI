@@ -25,8 +25,8 @@ export const UpdateStatusCard = async (req, res) => {
 }
 
 export const OpenCard = async (req, res) => {
-    const { id } = req.params
-    const now = new Date()
+    const { id } = req.params;
+    const now = new Date();
 
     try {
         const card = await pool.query('SELECT * FROM CardsCalendario WHERE id_card = ?', [id]);
@@ -42,15 +42,16 @@ export const OpenCard = async (req, res) => {
         }
 
         if (ultima_apertura) {
-            const diffHoras = (now - new Date(ultima_apertura)) / (1000 * 60 * 60);
-            if (diffHoras < 72) {
-                return res.status(400).json({ message: `Debes esperar ${72 - diffHoras.toFixed(1)} horas para abrir otra tarjeta.`, });
+            const diffSegundos = (now - new Date(ultima_apertura)) / 1000; // Diferencia en segundos
+            if (diffSegundos < 10) { // Cambia 10 segundos para pruebas
+                return res.status(400).json({ message: `Debes esperar ${10 - diffSegundos.toFixed(1)} segundos para abrir otra tarjeta.` });
             }
         }
+
         await pool.query('UPDATE CardsCalendario SET estado_card = ?, ultima_apertura = ? WHERE id_card = ?', ['Abierta', now, id]);
 
         return res.status(200).json({ message: `Sorpresa numero ${id} abierta` });
     } catch {
         return res.status(500).json({ message: 'Error al abrir la sorpresa' });
     }
-}
+};
